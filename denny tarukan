@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Asisten Mancing Kaimana — Pelabuhan Kampung Coa</title>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #FFFFFF;
+      color: #0F172A;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior-y: none;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Custom Range Slider untuk Grafik Pasang Surut Latar Putih */
+    input[type="range"].clean-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"].clean-slider::-webkit-slider-runnable-track {
+      height: 6px;
+      border-radius: 999px;
+      background: #E2E8F0;
+    }
+    input[type="range"].clean-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #0284C7;
+      border: 3px solid #FFFFFF;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.45);
+      margin-top: -8px;
+      transition: transform 0.15s ease;
+    }
+    input[type="range"].clean-slider::-webkit-slider-thumb:active {
+      transform: scale(1.18);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-sky-100 selection:text-sky-900">
+
+  <!-- ==================== HEADER ATAS ==================== -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-[#E5E7EB]">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <!-- Identitas Aplikasi & Lokasi Aktif -->
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/>
+            <path d="M18 8v7a5 5 0 0 1-10 0v-2l2.5 2.5"/>
+            <path d="M2 19c2.5-1.5 4.5-1.5 7 0s4.5 1.5 7 0 4.5-1.5 6 0"/>
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-sm sm:text-base font-extrabold tracking-tight text-slate-900 truncate">Asisten Mancing Kaimana</h1>
+            <span id="weather-live-pill" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+              Live
+            </span>
+          </div>
+          <p id="header-location-text" class="text-xs text-slate-600 truncate font-medium">
+            Pelabuhan Kampung Coa, Kaimana, Papua Barat
+          </p>
+        </div>
+      </div>
+
+      <!-- Tombol Lokasi GPS & Reset Default -->
+      <div class="flex items-center gap-1.5 shrink-0">
+        <button onclick="resetToDefaultCoa()" id="btn-reset-default" class="hidden px-2.5 py-2 rounded-xl border border-[#E5E7EB] bg-gray-50 hover:bg-gray-100 text-xs font-semibold text-slate-700 transition" title="Kembali ke Pelabuhan Kampung Coa">
+          Kampung Coa
+        </button>
+        <button onclick="useMyGPS()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 active:scale-95 text-xs font-bold text-sky-800 transition">
+          <svg class="w-3.5 h-3.5 text-sky-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v3m0 14v3M2 12h3m14 0h3"/>
+            <circle cx="12" cy="12" r="8"/>
+          </svg>
+          <span class="hidden sm:inline">Gunakan Lokasi GPS Saya</span>
+          <span class="sm:hidden">GPS Saya</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bar Pemilih Tanggal 7 Hari (Selalu Terlihat untuk Navigasi Cepat) -->
+    <div class="border-t border-[#E5E7EB] bg-gray-50/70">
+      <div class="max-w-4xl mx-auto px-4 py-2">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Pilih Tanggal (7 Hari)</span>
+          <span id="selected-date-label" class="text-xs font-bold text-sky-700">Hari Ini</span>
+        </div>
+        <div id="date-strip-container" class="grid grid-cols-7 gap-1.5">
+          <!-- Diisi otomatis via JavaScript -->
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== KONTEN UTAMA ==================== -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 pt-4 pb-24">
+
+    <!-- ==================== TAB 1: PRAKIRAAN (PASANG SURUT, AKTIVITAS, HUJAN & ANGIN) ==================== -->
+    <section id="tab-prakiraan" class="tab-panel space-y-4">
+
+      <!-- Banner Peringatan Hujan (Muncul Otomatis Jika Ada Jam Hujan Lebat) -->
+      <div id="rain-warning-banner" class="hidden rounded-2xl border border-amber-300 bg-amber-50 p-3.5 flex items-start gap-3">
+        <div class="w-8 h-8 rounded-xl bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="text-xs leading-relaxed">
+          <div class="font-extrabold text-amber-950">Peringatan Curah Hujan Hari Ini</div>
+          <p id="rain-warning-text" class="text-amber-900 mt-0.5">Berpotensi turun hujan pada jam tertentu. Siapkan jas hujan sebelum ke dermaga.</p>
+        </div>
+      </div>
+
+      <!-- Ringkasan Cepat Hari Ini (4 Kartu Utama) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <!-- Kartu Skor Aktivitas Ikan Harian -->
+        <div class="bg-white border border-[#E5E7EB] rounded-2xl p-3.5 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase">Aktivitas Ikan</span>
+            <span id="daily-fish-badge" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">GACOR</span>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="daily-fish-score" class="text-2xl font-extrabold font-mono text-slate-900">86%</span>
+            <span class="text-xs text-slate-500 font-medium">/ 100</span>
+          </div>
+          <p id="daily-moon-label" class="text-[11px] text-slate-600 mt-1 font-medium truncate">Fase Bulan Purnama</p>
+        </div>
+
+        <!-- Kartu Jendela Emas Terbaik -->
+        <div class="bg-white border border-[#E5E7EB] rounded-2xl p-3.5 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase">Jam Paling Gacor</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          </div>
+          <div id="daily-best-window" class="mt-2 text-base sm:text-lg font-extrabold font-mono text-emerald-700">
+            16:00–19:00
+          </div>
+          <p class="text-[11px] text-slate-600 mt-1 font-medium">Jendela Emas Arus Jalan</p>
+        </div>
+
+        <!-- Kartu Curah Hujan Maksimal -->
+        <div class="bg-white border border-[#E5E7EB] rounded-2xl p-3.5 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase">Peluang Hujan</span>
+            <svg class="w-4 h-4 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
+              <path d="M16 14v6M8 14v6M12 16v6"/>
+            </svg>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1.5">
+            <span id="daily-rain-prob" class="text-2xl font-extrabold font-mono text-slate-900">20%</span>
+            <span id="daily-rain-mm" class="text-xs font-mono text-slate-500">(0.2 mm)</span>
+          </div>
+          <p id="daily-rain-status" class="text-[11px] text-slate-600 mt-1 font-medium">Cuaca Kondusif</p>
+        </div>
+
+        <!-- Kartu Angin & Saran Berat Timah -->
+        <div class="bg-white border border-[#E5E7EB] rounded-2xl p-3.5 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-500 uppercase">Angin &amp; Timah</span>
+            <svg class="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/>
+              <path d="M9.6 4.6A2 2 0 1 1 11 8H2"/>
+              <path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>
+            </svg>
+          </div>
+          <div class="mt-2 flex items-baseline gap-1">
+            <span id="daily-wind-speed" class="text-2xl font-extrabold font-mono text-slate-900">9</span>
+            <span class="text-xs text-slate-500 font-medium">km/jam</span>
+          </div>
+          <p id="daily-sinker-advice" class="text-[11px] text-teal-800 font-bold mt-1 truncate">UL: 5g (A-0) | Tali: 10g</p>
+        </div>
+      </div>
+
+      <!-- FITUR 1: GRAFIK PASANG SURUT 24 JAM & JENDELA EMAS ARUS JALAN -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-sm space-y-3">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-sky-700">Fitur 1 • Pasang Surut Air Laut</span>
+            <h2 class="text-base font-extrabold text-slate-900 mt-0.5">Kurva Ketinggian Air 24 Jam &amp; Jendela Emas</h2>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 text-[11px] font-semibold">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
+              <span class="w-2.5 h-2.5 rounded-sm bg-emerald-500"></span> Jendela Emas Arus Jalan
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-50 text-sky-800 border border-sky-200">
+              <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span> Tinggi Air (m)
+            </span>
+          </div>
+        </div>
+
+        <!-- Kotak Info Jam yang Sedang Diinspeksi pada Grafik -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-gray-50 border border-[#E5E7EB] rounded-xl p-3">
+          <div>
+            <div class="text-[10px] font-bold uppercase text-slate-500">Jam Dipilih</div>
+            <div id="inspect-time" class="text-sm sm:text-base font-extrabold font-mono text-sky-700 mt-0.5">10:00 WIT</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold uppercase text-slate-500">Tinggi Pasang</div>
+            <div id="inspect-tide" class="text-sm sm:text-base font-extrabold font-mono text-slate-900 mt-0.5">1.68 m</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold uppercase text-slate-500">Aktivitas Ikan</div>
+            <div id="inspect-activity" class="text-xs sm:text-sm font-extrabold text-emerald-700 mt-0.5">88% (Gacor)</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold uppercase text-slate-500">Saran Timah Jam Ini</div>
+            <div id="inspect-sinker" class="text-xs font-bold text-slate-800 mt-0.5">UL 5g / Tali 10g</div>
+          </div>
+        </div>
+
+        <!-- SVG Grafik Pasang Surut Interaktif -->
+        <div class="relative w-full select-none pt-1">
+          <svg id="tide-svg" viewBox="0 0 760 240" class="w-full h-auto overflow-visible cursor-pointer touch-pan-y">
+            <defs>
+              <linearGradient id="cleanTideGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0284C7" stop-opacity="0.22" />
+                <stop offset="100%" stop-color="#0284C7" stop-opacity="0.02" />
+              </linearGradient>
+              <linearGradient id="cleanGoldenGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#10B981" stop-opacity="0.24" />
+                <stop offset="100%" stop-color="#10B981" stop-opacity="0.05" />
+              </linearGradient>
+            </defs>
+            <g id="svg-grid"></g>
+            <g id="svg-golden-zones"></g>
+            <g id="svg-tide-area"></g>
+            <g id="svg-extremes"></g>
+            <g id="svg-now-line"></g>
+            <g id="svg-scrubber"></g>
+          </svg>
+
+          <!-- Slider Penggeser Jam -->
+          <div class="mt-2 px-1">
+            <input id="hour-slider" type="range" min="0" max="23" value="10" class="w-full clean-slider" aria-label="Geser jam prakiraan" />
+            <div class="flex justify-between text-[10px] font-mono font-semibold text-slate-500 mt-1">
+              <span>00:00</span>
+              <span>06:00</span>
+              <span>12:00</span>
+              <span>18:00</span>
+              <span>23:00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Jadwal Pasti Pasang Tertinggi, Surut Terendah & Jendela Emas -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-[#E5E7EB]">
+          <div class="bg-sky-50/60 border border-sky-200 rounded-xl p-3">
+            <div class="text-[11px] font-extrabold uppercase text-sky-800">Pasang Tertinggi</div>
+            <div id="high-tide-list" class="mt-1 space-y-1 text-xs font-mono font-bold text-slate-900">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+          <div class="bg-gray-50 border border-[#E5E7EB] rounded-xl p-3">
+            <div class="text-[11px] font-extrabold uppercase text-slate-600">Surut Terendah</div>
+            <div id="low-tide-list" class="mt-1 space-y-1 text-xs font-mono font-bold text-slate-700">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+          <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3">
+            <div class="text-[11px] font-extrabold uppercase text-emerald-900">Jendela Emas Arus Jalan</div>
+            <p class="text-[10px] text-emerald-800 mb-1">2–3 jam sebelum &amp; 1–2 jam sesudah pasang puncak:</p>
+            <div id="golden-window-list" class="space-y-1 text-xs font-mono font-bold text-emerald-950">
+              <!-- Diisi JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FITUR 2 & 3 RINGKASAN CEPAT: CUACA, CURAH HUJAN & ANGIN PER JAM PILIHAN -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-sky-700">Sorotan Jam Gacor &amp; Cuaca</span>
+            <h3 class="text-base font-extrabold text-slate-900 mt-0.5">Prakiraan 6 Jam Pilihan Hari Ini</h3>
+          </div>
+          <button onclick="switchTab('perjam')" class="text-xs font-bold text-sky-700 hover:text-sky-800 flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-sky-50 border border-sky-200">
+            <span>Lihat 24 Jam Penuh</span>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+
+        <div id="highlight-hours-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+          <!-- Diisi otomatis via JS -->
+        </div>
+      </div>
+
+      <!-- PANDUAN SINGKAT REKOMENDASI TIMAH & STRATEGI HARI INI -->
+      <div class="bg-gray-50 border border-[#E5E7EB] rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="space-y-1">
+          <div class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Saran Taktik &amp; Berat Timah Hari Ini</div>
+          <p id="daily-tactical-summary" class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+            Memuat saran taktik untuk Pelabuhan Kampung Coa...
+          </p>
+        </div>
+        <button onclick="switchTab('gemini')" class="shrink-0 px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm">
+          Konsultasi ke Gemini →
+        </button>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: DETAIL PER JAM (AKTIVITAS IKAN, HUJAN, PASANG & TIMAH) ==================== -->
+    <section id="tab-perjam" class="tab-panel hidden space-y-4">
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-sm">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E5E7EB]">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-sky-700">Fitur 2, 3 &amp; Timah • Tabel 24 Jam</span>
+            <h2 class="text-base font-extrabold text-slate-900 mt-0.5">Aktivitas Ikan, Curah Hujan, Pasang Surut &amp; Berat Timah</h2>
+          </div>
+          <!-- Filter Cepat Jam -->
+          <div class="flex items-center gap-1.5">
+            <button onclick="setHourlyFilter('all')" id="btn-filter-all" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white transition">
+              Semua (24 Jam)
+            </button>
+            <button onclick="setHourlyFilter('gacor')" id="btn-filter-gacor" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-slate-700 hover:bg-gray-200 transition">
+              Hanya Jam Gacor
+            </button>
+          </div>
+        </div>
+
+        <!-- Daftar Baris Per Jam (00:00 - 23:00) -->
+        <div id="hourly-list-container" class="divide-y divide-[#E5E7EB] mt-2">
+          <!-- Diisi otomatis via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: CATATAN TANGKAPAN & TITIK SPOT GPS ==================== -->
+    <section id="tab-catatan" class="tab-panel hidden space-y-5">
+
+      <!-- Ringkasan Statistik Catatan Tangkapan (3 Kartu) -->
+      <div class="grid grid-cols-3 gap-2.5">
+        <div class="bg-white border border-[#E5E7EB] rounded-2xl p-3.5 shadow-sm">
+          <div class="text-[10px] sm:text-xs font-bold uppercase text-slate-500">Total Tangkapan</div>
+          <div id="stat-total-fish" class="text-xl sm:text-2xl font-extrabold font-mono text-slate-900 mt-1">0 Ekor</div>
+        </div>
+        <div class="bg-white border border-[#E5E7EB] rounded-2xl p-3.5 shadow-sm">
+          <div class="text-[10px] sm:text-xs font-bold uppercase text-slate-500">Umpan Paling Gacor</div>
+          <div id="stat-best-bait" class="text-xs sm:text-sm font-extrabold text-emerald-700 mt-1.5 line-clamp-2">-</div>
+        </div>
+        <div class="bg-white border border-[#E5E7EB] rounded-2xl p-3.5 shadow-sm">
+          <div class="text-[10px] sm:text-xs font-bold uppercase text-slate-500">Jam Paling Gacor</div>
+          <div id="stat-best-hour" class="text-xs sm:text-sm font-extrabold font-mono text-sky-700 mt-1.5">-</div>
+        </div>
+      </div>
+
+      <!-- Form Cepat Catat Tangkapan Ikan -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-sky-700">Fitur 4 • Logbook Pemancing</span>
+            <h2 class="text-base font-extrabold text-slate-900 mt-0.5">Catat Hasil Tangkapan Baru</h2>
+          </div>
+          <span class="text-[11px] font-semibold text-slate-500">Tersimpan di HP</span>
+        </div>
+
+        <form id="logbook-form" onsubmit="submitCatchLog(event)" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal &amp; Jam Tangkapan</label>
+            <input id="log-datetime" type="datetime-local" required class="w-full rounded-xl border border-[#E5E7EB] bg-gray-50 px-3 py-2 text-sm text-slate-900 font-mono focus:bg-white focus:outline-none focus:border-sky-600" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Ikan</label>
+            <input id="log-species" type="text" list="species-suggestions" required placeholder="Contoh: Kerapu, Kakap, Lencam, Julung-julung" class="w-full rounded-xl border border-[#E5E7EB] bg-gray-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-sky-600" />
+            <datalist id="species-suggestions">
+              <option value="Kerapu"></option>
+              <option value="Kakap (Mangrove Jack)"></option>
+              <option value="Lencam"></option>
+              <option value="Julung-julung"></option>
+              <option value="Kuwe / Baby GT"></option>
+              <option value="Selar"></option>
+              <option value="Baronang"></option>
+            </datalist>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Perkiraan Berat / Panjang</label>
+            <input id="log-size" type="text" required placeholder="Contoh: 450 gram / 28 cm" class="w-full rounded-xl border border-[#E5E7EB] bg-gray-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-sky-600" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Umpan yang Dipakai</label>
+            <select id="log-bait" class="w-full rounded-xl border border-[#E5E7EB] bg-gray-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-sky-600">
+              <option value="Udang Kupas">Udang Kupas</option>
+              <option value="Cumi Iris Tipis">Cumi Iris Tipis</option>
+              <option value="Irisan Ikan">Irisan Ikan (Tongkol / Kembung)</option>
+              <option value="Sabiki Bulu Mutiara">Sabiki Bulu Mutiara</option>
+              <option value="Micro Jig">Micro Jig (3–5 gram)</option>
+              <option value="Soft Lure">Soft Lure (Udang / Grub)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Rangkaian &amp; Alat</label>
+            <select id="log-rig" class="w-full rounded-xl border border-[#E5E7EB] bg-gray-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-sky-600">
+              <option value="Ultralight 2-6 lbs (Dasaran 2 Kail)">Ultralight 2–6 lbs (Dasaran 2 Kail)</option>
+              <option value="Ultralight 2-6 lbs (Pelampung / Atas)">Ultralight 2–6 lbs (Pelampung / Atas)</option>
+              <option value="Ultralight 2-6 lbs (Cast-Jig / Sabiki)">Ultralight 2–6 lbs (Cast-Jig / Sabiki)</option>
+              <option value="Tali Tangan (Handline Nilon)">Tali Tangan (Handline Nilon)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Titik Spot</label>
+            <select id="log-spot" class="w-full rounded-xl border border-[#E5E7EB] bg-gray-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-sky-600">
+              <!-- Diisi dinamis dari daftar spot -->
+            </select>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Catatan Singkat (Kondisi Arus / Kedalaman)</label>
+            <input id="log-notes" type="text" placeholder="Contoh: Makan di dekat tiang pancang saat air pasang naik, timah 7g" class="w-full rounded-xl border border-[#E5E7EB] bg-gray-50 px-3 py-2 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-sky-600" />
+          </div>
+
+          <div class="sm:col-span-2 flex justify-end pt-1">
+            <button type="submit" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-extrabold text-xs sm:text-sm transition shadow-sm">
+              + Simpan Catatan Tangkapan
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Daftar Riwayat Tangkapan & Tombol Ekspor / Cadangkan -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-sm space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E5E7EB]">
+          <div>
+            <h3 class="text-sm sm:text-base font-extrabold text-slate-900">Riwayat Catatan Tangkapan</h3>
+            <p class="text-xs text-slate-500">Data ini otomatis dibaca oleh fitur Tanya Gemini untuk evaluasi strategi.</p>
+          </div>
+          <!-- Tombol Ekspor / Cadangkan -->
+          <div class="flex flex-wrap items-center gap-1.5">
+            <button onclick="copyLogsToClipboard()" class="px-2.5 py-1.5 rounded-xl border border-[#E5E7EB] bg-gray-50 hover:bg-gray-100 text-xs font-bold text-slate-700 transition">
+              Salin Teks
+            </button>
+            <button onclick="exportLogsCSV()" class="px-2.5 py-1.5 rounded-xl border border-[#E5E7EB] bg-gray-50 hover:bg-gray-100 text-xs font-bold text-slate-700 transition">
+              Unduh CSV
+            </button>
+            <button onclick="exportLogsJSON()" class="px-2.5 py-1.5 rounded-xl border border-[#E5E7EB] bg-gray-50 hover:bg-gray-100 text-xs font-bold text-slate-700 transition">
+              Unduh JSON
+            </button>
+          </div>
+        </div>
+
+        <div id="catch-history-list" class="space-y-2.5">
+          <!-- Diisi via JS -->
+        </div>
+      </div>
+
+      <!-- FITUR PENDUKUNG: SIMPAN TITIK SPOT GPS SEDERHANA -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-sm space-y-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E5E7EB]">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-teal-700">Koordinat Dermaga &amp; Karang</span>
+            <h3 class="text-base font-extrabold text-slate-900 mt-0.5">Daftar Titik Spot GPS Favorit</h3>
+          </div>
+          <button onclick="addSpotWithOneClickGPS()" class="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 active:scale-95 text-white text-xs font-extrabold transition flex items-center gap-1.5 self-start sm:self-center">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Tandai Posisi GPS Saat Ini</span>
+          </button>
+        </div>
+
+        <!-- Form Tambah Spot Manual / GPS Cepat -->
+        <form onsubmit="handleAddSpotForm(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-2 bg-gray-50 p-3 rounded-xl border border-[#E5E7EB]">
+          <input id="spot-name-input" type="text" required placeholder="Nama Spot (Mis: Tiang Ujung)" class="rounded-lg border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-sky-600" />
+          <input id="spot-lat-input" type="number" step="any" required placeholder="Latitude (-3.6617)" class="rounded-lg border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-sky-600" />
+          <input id="spot-lon-input" type="number" step="any" required placeholder="Longitude (133.7606)" class="rounded-lg border border-[#E5E7EB] bg-white px-2.5 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-sky-600" />
+          <button type="submit" class="rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-1.5 px-3 transition">
+            + Tambah Spot
+          </button>
+        </form>
+
+        <div id="spots-list-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <!-- Diisi via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: FITUR TANYA GEMINI LANGSUNG (TERINTEGRASI CATATAN) ==================== -->
+    <section id="tab-gemini" class="tab-panel hidden space-y-4">
+
+      <!-- Kartu Header & Konteks Otomatis yang Dikirim ke Gemini -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl p-4 shadow-sm space-y-3">
+        <div class="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-sky-700">Fitur 5 • Asisten AI Terintegrasi</span>
+            <h2 class="text-base font-extrabold text-slate-900 mt-0.5">Tanya Gemini — Konsultasi Strategi Mancing</h2>
+          </div>
+          <button onclick="toggleApiKeyPanel()" class="text-xs font-bold text-slate-600 hover:text-slate-900 px-2.5 py-1.5 rounded-xl border border-[#E5E7EB] bg-gray-50 flex items-center gap-1">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            <span>Pengaturan API Key</span>
+          </button>
+        </div>
+
+        <!-- Panel Pengaturan API Key Opsional (Disimpan di localStorage) -->
+        <div id="apikey-panel" class="hidden bg-gray-50 border border-[#E5E7EB] rounded-xl p-3 space-y-2">
+          <div class="text-xs font-bold text-slate-800">Gemini API Key (Opsional)</div>
+          <p class="text-[11px] text-slate-600">
+            Di lingkungan Canvas, Gemini langsung berjalan otomatis. Jika Anda membuka file HTML ini secara mandiri di browser HP, Anda dapat memasukkan Gemini API Key pribadi agar tersimpan di perangkat.
+          </p>
+          <div class="flex gap-2">
+            <input id="custom-apikey-input" type="password" placeholder="Masukkan Gemini API Key (AIza...)" class="flex-1 rounded-xl border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-sky-600" />
+            <button onclick="saveCustomApiKey()" class="px-3.5 py-1.5 rounded-xl bg-sky-600 text-white text-xs font-bold">Simpan</button>
+          </div>
+        </div>
+
+        <!-- Ringkasan Data yang Terintegrasi Otomatis ke Gemini -->
+        <div class="bg-sky-50/70 border border-sky-200 rounded-xl p-3 text-xs space-y-1">
+          <div class="font-extrabold text-sky-950 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-sky-600"></span>
+            <span>Data Konteks Otomatis Aktif (Dibaca oleh Gemini):</span>
+          </div>
+          <p id="gemini-context-preview" class="text-sky-900 leading-relaxed font-medium">
+            Memuat ringkasan lokasi, pasang surut, curah hujan, dan riwayat tangkapan...
+          </p>
+        </div>
+
+        <!-- Tombol Pertanyaan Cepat (Quick Prompts) -->
+        <div>
+          <div class="text-[11px] font-bold text-slate-500 uppercase mb-1.5">Pertanyaan Cepat:</div>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="askQuickPrompt('Berdasarkan jadwal pasang surut, curah hujan, dan catatan tangkapan saya hari ini, jam berapa waktu paling optimal saya turun memancing dan umpan apa yang harus saya siapkan?')" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-sky-50 hover:text-sky-800 hover:border-sky-200 border border-[#E5E7EB] text-slate-700 transition">
+              ⏱️ Jam &amp; umpan terbaik hari ini?
+            </button>
+            <button onclick="askQuickPrompt('Evaluasi riwayat catatan tangkapan saya sejauh ini. Pola umpan, rangkaian, dan jam apa yang paling berhasil untuk saya di Pelabuhan Kampung Coa?')" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-sky-50 hover:text-sky-800 hover:border-sky-200 border border-[#E5E7EB] text-slate-700 transition">
+              📊 Evaluasi catatan tangkapan saya
+            </button>
+            <button onclick="askQuickPrompt('Tadi malam banyak gerombolan ikan panjang pipih di permukaan dan di dasar banyak ikan buntal serta tarikan sering lepas. Bagaimana strategi rangkaian UL 2-6 lbs dan cara potong umpan cumi/udangnya?')" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-sky-50 hover:text-sky-800 hover:border-sky-200 border border-[#E5E7EB] text-slate-700 transition">
+              🎣 Solusi ikan lepas &amp; hindari buntal
+            </button>
+            <button onclick="askQuickPrompt('Berapa berat timah dan ukuran kail Chinu yang pas untuk kecepatan angin serta arus pasang surut hari ini baik untuk joran UL 2-6 lbs maupun tali tangan?')" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-sky-50 hover:text-sky-800 hover:border-sky-200 border border-[#E5E7EB] text-slate-700 transition">
+              ⚖️ Rekomendasi timah &amp; kail hari ini
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Area Percakapan Chat Gemini -->
+      <div class="bg-white border border-[#E5E7EB] rounded-2xl shadow-sm flex flex-col h-[430px] sm:h-[470px]">
+        <div id="gemini-chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3">
+          <!-- Pesan Sambutan Awal -->
+          <div class="bg-gray-50 border border-[#E5E7EB] rounded-2xl p-3.5 text-xs sm:text-sm text-slate-800 leading-relaxed">
+            <div class="font-extrabold text-sky-800 mb-1">Halo Pemancing Kaimana! 👋</div>
+            <p>
+              Saya sudah terhubung dengan <strong>Buku Catatan Tangkapan</strong> Anda serta data <strong>Pasang Surut, Aktivitas Ikan, Curah Hujan, dan Kecepatan Angin</strong> di Pelabuhan Kampung Coa. Silakan ketik pertanyaan atau pilih tombol pertanyaan cepat di atas!
+            </p>
+          </div>
+        </div>
+
+        <!-- Form Input Chat -->
+        <form onsubmit="handleSendGeminiForm(event)" class="p-3 border-t border-[#E5E7EB] bg-gray-50/60 rounded-b-2xl flex items-center gap-2">
+          <input id="gemini-user-input" type="text" required placeholder="Tanya strategi umpan, kedalaman, atau evaluasi tangkapan..." class="flex-1 rounded-xl border border-[#E5E7EB] bg-white px-3.5 py-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-sky-600" />
+          <button id="gemini-send-btn" type="submit" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 active:scale-95 text-white font-extrabold text-xs sm:text-sm transition shrink-0">
+            Kirim
+          </button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== NAVIGASI BAWAH (BOTTOM NAVIGATION BAR SEDERHANA) ==================== -->
+  <nav class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E5E7EB]">
+    <div class="max-w-4xl mx-auto px-2 py-1.5 grid grid-cols-4 gap-1">
+      <button onclick="switchTab('prakiraan')" data-tab="prakiraan" class="bottom-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-bold transition">
+        <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/>
+          <path d="M2 17c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 6 0"/>
+          <circle cx="12" cy="6" r="3"/>
+        </svg>
+        <span>Pasang &amp; Cuaca</span>
+      </button>
+
+      <button onclick="switchTab('perjam')" data-tab="perjam" class="bottom-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-bold transition">
+        <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>Cek Per Jam</span>
+      </button>
+
+      <button onclick="switchTab('catatan')" data-tab="catatan" class="bottom-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-bold transition">
+        <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        <span>Log &amp; Spot</span>
+      </button>
+
+      <button onclick="switchTab('gemini')" data-tab="gemini" class="bottom-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-bold transition">
+        <svg class="w-5 h-5 mb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3l1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3Z"/>
+        </svg>
+        <span>Tanya Gemini</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ==================== TOAST NOTIFIKASI RINGAN (TANPA ALERT) ==================== -->
+  <div id="toast-box" class="fixed top-16 right-4 left-4 sm:left-auto sm:w-80 z-50 pointer-events-none flex flex-col gap-2"></div>
+
+  <!-- ==================== SCRIPT UTAMA APLIKASI ==================== -->
+  <script>
+    // ==================== 1. KONFIGURASI DEFAULT & STATE ====================
+    const DEFAULT_COA = {
+      name: 'Pelabuhan Kampung Coa, Kaimana, Papua Barat',
+      lat: -3.6617,
+      lon: 133.7606
+    };
+
+    const INITIAL_SPOTS = [
+      {
+        id: 'spot-1',
+        name: 'Ujung Dermaga Lampu Utama',
+        lat: -3.6617,
+        lon: 133.7606,
+        desc: 'Target permukaan (Julung-julung & Selar) di batas cahaya lampu & dasaran dekat tiang.'
+      },
+      {
+        id: 'spot-2',
+        name: 'Tiang Pancang Tengah Kampung Coa',
+        lat: -3.6614,
+        lon: 133.7611,
+        desc: 'Sarang Kerapu, Kakap, dan Lencam di sela struktur tiang beton (kedalaman ±4–5m).'
+      },
+      {
+        id: 'spot-3',
+        name: 'Batas Karang Barat Dermaga',
+        lat: -3.6621,
+        lon: 133.7599,
+        desc: 'Pertemuan arus dangkal ke dalam (drop-off), potensial Kuwe / Baby GT & Barracuda.'
+      }
+    ];
+
+    const INITIAL_LOGS = [
+      {
+        id: 'log-1',
+        datetime: '2025-05-10T19:30',
+        species: 'Kerapu',
+        size: '450 gram / 28 cm',
+        bait: 'Udang Kupas',
+        rig: 'Ultralight 2-6 lbs (Dasaran 2 Kail)',
+        spot: 'Tiang Pancang Tengah Kampung Coa',
+        notes: 'Makan saat air pasang naik, pakai kail Chinu No. 2 dan timah anting 7 gram.'
+      },
+      {
+        id: 'log-2',
+        datetime: '2025-05-11T20:15',
+        species: 'Julung-julung',
+        size: '200 gram / 33 cm',
+        bait: 'Cumi Iris Tipis',
+        rig: 'Ultralight 2-6 lbs (Pelampung / Atas)',
+        spot: 'Ujung Dermaga Lampu Utama',
+        notes: 'Cumi dikupas kulit arinya dan diiris tipis memanjang, pelampung 40 cm di atas kail.'
+      }
+    ];
+
+    let state = {
+      activeTab: 'prakiraan',
+      location: { ...DEFAULT_COA },
+      selectedDayIndex: 0, // 0..6 (7 hari)
+      selectedHour: new Date().getHours(),
+      hourlyFilter: 'all', // 'all' atau 'gacor'
+      weatherForecast7Days: null, // Data dari Open-Meteo atau simulasi fallback
+      isWeatherLive: false,
+      currentDayModel: null,
+      logs: [],
+      spots: [],
+      customApiKey: ''
+    };
+
+    // ==================== 2. PENYIMPANAN LOKAL (LOCALSTORAGE) ====================
+    function loadStorage() {
+      try {
+        const savedLogs = localStorage.getItem('coa_fishing_logs_v2');
+        state.logs = savedLogs ? JSON.parse(savedLogs) : [...INITIAL_LOGS];
+
+        const savedSpots = localStorage.getItem('coa_fishing_spots_v2');
+        state.spots = savedSpots ? JSON.parse(savedSpots) : [...INITIAL_SPOTS];
+
+        const savedKey = localStorage.getItem('coa_gemini_apikey_v2');
+        if (savedKey) {
+          state.customApiKey = savedKey;
+          const input = document.getElementById('custom-apikey-input');
+          if (input) input.value = savedKey;
+        }
+      } catch (e) {
+        state.logs = [...INITIAL_LOGS];
+        state.spots = [...INITIAL_SPOTS];
+      }
+    }
+
+    function saveLogsStorage() {
+      try { localStorage.setItem('coa_fishing_logs_v2', JSON.stringify(state.logs)); } catch (e) {}
+    }
+
+    function saveSpotsStorage() {
+      try { localStorage.setItem('coa_fishing_spots_v2', JSON.stringify(state.spots)); } catch (e) {}
+    }
+
+    function showToast(msg, type = 'info') {
+      const box = document.getElementById('toast-box');
+      const el = document.createElement('div');
+      const styleMap = {
+        success: 'bg-emerald-900 text-white border-emerald-700',
+        warning: 'bg-amber-900 text-white border-amber-700',
+        info: 'bg-slate-900 text-white border-slate-700'
+      };
+      el.className = `pointer-events-auto px-3.5 py-2.5 rounded-xl border shadow-md text-xs font-bold transition-all duration-300 ${styleMap[type] || styleMap.info}`;
+      el.textContent = msg;
+      box.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 250);
+      }, 2800);
+    }
+
+    // ==================== 3. NAVIGASI TAB ====================
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      const target = document.getElementById(`tab-${tabId}`);
+      if (target) target.classList.remove('hidden');
+
+      document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+        const isCurrent = btn.getAttribute('data-tab') === tabId;
+        if (isCurrent) {
+          btn.className = 'bottom-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-extrabold bg-sky-50 text-sky-700 border border-sky-200 transition';
+        } else {
+          btn.className = 'bottom-nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-semibold text-slate-500 hover:text-slate-900 transition';
+        }
+      });
+
+      if (tabId === 'catatan') {
+        renderLogsAndSpots();
+      } else if (tabId === 'gemini') {
+        updateGeminiContextBanner();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ==================== 4. MODEL ASTRONOMI PASANG SURUT, AKTIVITAS IKAN & CUACA PER JAM ====================
+    function getDateByOffset(dayOffset) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() + dayOffset);
+      return d;
+    }
+
+    function getMoonPhaseInfo(dateObj) {
+      const synodic = 29.53058867;
+      const refNewMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
+      const nowUtc = Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 12, 0, 0);
+      let age = ((nowUtc - refNewMoon) / 86400000) % synodic;
+      if (age < 0) age += synodic;
+      const ratio = age / synodic;
+      const illum = Math.round(((1 - Math.cos(2 * Math.PI * ratio)) / 2) * 100);
+
+      let name = 'Sabit Awal';
+      let solunarBonus = 10;
+      if (age < 1.8 || age >= 27.7) { name = 'Bulan Mati (Arus Besar)'; solunarBonus = 20; }
+      else if (age < 5.5) { name = 'Sabit Awal'; solunarBonus = 12; }
+      else if (age < 9.2) { name = 'Perbani Awal (Arus Stabil)'; solunarBonus = 15; }
+      else if (age < 12.9) { name = 'Cembung Awal'; solunarBonus = 14; }
+      else if (age < 16.6) { name = 'Bulan Purnama (Arus Besar)'; solunarBonus = 22; }
+      else if (age < 20.3) { name = 'Cembung Akhir'; solunarBonus = 14; }
+      else if (age < 24.0) { name = 'Perbani Akhir (Arus Stabil)'; solunarBonus = 15; }
+      else { name = 'Sabit Akhir'; solunarBonus = 11; }
+
+      return { age, ratio, illum, name, solunarBonus };
+    }
+
+    // Ambil cuaca 7 hari dari Open-Meteo untuk koordinat aktif
+    async function fetch7DayWeather(lat, lon) {
+      const pill = document.getElementById('weather-live-pill');
+      pill.textContent = 'Memuat...';
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation_probability,precipitation,wind_speed_10m&timezone=auto&forecast_days=7`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('API Error');
+        const data = await res.json();
+        state.weatherForecast7Days = data.hourly;
+        state.isWeatherLive = true;
+        pill.textContent = 'Cuaca Live';
+        pill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0';
+      } catch (e) {
+        state.weatherForecast7Days = null;
+        state.isWeatherLive = false;
+        pill.textContent = 'Estimasi Lokal';
+        pill.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-slate-600 border border-gray-300 shrink-0';
+      }
+      rebuildDayDataAndRender();
+    }
+
+    function buildDayModel(dayOffset) {
+      const dateObj = getDateByOffset(dayOffset);
+      const moon = getMoonPhaseInfo(dateObj);
+      const daySeed = Math.floor(dateObj.getTime() / 86400000);
+      const lonShift = ((state.location.lon - 133.7606) * Math.PI) / 180;
+
+      // Harmonik pasang surut semi-diurnal campuran khas Kaimana
+      const springFactor = Math.cos(4 * Math.PI * moon.ratio);
+      const ampM2 = 0.72 + 0.22 * springFactor;
+      const ampK1 = 0.25 + 0.07 * Math.sin(2 * Math.PI * moon.ratio);
+      const meanTide = 1.30;
+      const shiftM2 = daySeed * 0.82 + lonShift;
+      const shiftK1 = daySeed * 0.41 + lonShift * 0.5;
+
+      // Hitung ketinggian per 15 menit (96 titik) untuk akurasi jam pasang tertinggi & surut terendah
+      const finePoints = [];
+      for (let i = 0; i < 96; i++) {
+        const hr = i * 0.25;
+        const h = meanTide
+          + ampM2 * Math.cos((2 * Math.PI * hr) / 12.42 - shiftM2)
+          + ampK1 * Math.cos((2 * Math.PI * hr) / 23.93 - shiftK1);
+        const mins = i * 15;
+        const hh = String(Math.floor(mins / 60)).padStart(2, '0');
+        const mm = String(mins % 60).padStart(2, '0');
+        finePoints.push({
+          index: i,
+          hourFloat: hr,
+          timeStr: `${hh}:${mm}`,
+          height: Number(Math.max(0.2, h).toFixed(2))
+        });
+      }
+
+      const highTides = [];
+      const lowTides = [];
+      for (let i = 1; i < finePoints.length - 1; i++) {
+        if (finePoints[i].height >= finePoints[i - 1].height && finePoints[i].height > finePoints[i + 1].height) {
+          highTides.push(finePoints[i]);
+        }
+        if (finePoints[i].height <= finePoints[i - 1].height && finePoints[i].height < finePoints[i + 1].height) {
+          lowTides.push(finePoints[i]);
+        }
+      }
+
+      // Bentuk Jendela Emas Arus Jalan: 2.5 jam sebelum s/d 1.5 jam sesudah pasang puncak
+      const goldenRanges = highTides.map(ht => {
+        const startH = Math.max(0, Math.floor(ht.hourFloat - 2.5));
+        const endH = Math.min(23, Math.ceil(ht.hourFloat + 1.5));
+        return {
+          peakTime: ht.timeStr,
+          peakHeight: ht.height,
+          startHour: startH,
+          endHour: endH,
+          label: `${String(startH).padStart(2, '0')}:00 – ${String(endH).padStart(2, '0')}:00 WIT`
+        };
+      });
+
+      // Bangun data 24 jam (00:00 - 23:00)
+      const hours = [];
+      for (let h = 0; h < 24; h++) {
+        const fineIdx = h * 4;
+        const tideHeight = finePoints[fineIdx].height;
+        const prevH = finePoints[Math.max(0, fineIdx - 2)].height;
+        const nextH = finePoints[Math.min(95, fineIdx + 2)].height;
+        const tideSlope = nextH - prevH; // Kecepatan perubahan pasang surut
+
+        let tidePhase = 'Air Tenang / Pergantian';
+        if (tideSlope > 0.08) tidePhase = 'Pasang Naik (Arus Jalan)';
+        else if (tideSlope < -0.08) tidePhase = 'Air Surut (Arus Keluar)';
+
+        const isGoldenHour = goldenRanges.some(g => h >= g.startHour && h <= g.endHour);
+
+        // Cuaca per jam dari Open-Meteo atau simulasi realistis
+        let rainProb = 15;
+        let rainMm = 0.0;
+        let windSpeed = 8;
+        let temp = 28;
+
+        const apiIdx = dayOffset * 24 + h;
+        if (state.weatherForecast7Days && state.weatherForecast7Days.precipitation_probability && state.weatherForecast7Days.precipitation_probability[apiIdx] !== undefined) {
+          rainProb = Math.round(state.weatherForecast7Days.precipitation_probability[apiIdx] ?? 15);
+          rainMm = Number((state.weatherForecast7Days.precipitation[apiIdx] ?? 0).toFixed(1));
+          windSpeed = Math.round(state.weatherForecast7Days.wind_speed_10m[apiIdx] ?? 8);
+          temp = Math.round(state.weatherForecast7Days.temperature_2m[apiIdx] ?? 28);
+        } else {
+          // Simulasi realistis pesisir Kaimana (sore/malam kadang gerimis ringan)
+          const pseudo = Math.sin((daySeed + 1) * 1.7 + h * 0.45);
+          rainProb = Math.max(5, Math.min(85, Math.round(25 + 30 * pseudo + (h >= 15 && h <= 19 ? 15 : 0))));
+          rainMm = rainProb >= 60 ? Number(((rainProb - 50) * 0.08).toFixed(1)) : 0.0;
+          windSpeed = Math.max(4, Math.min(22, Math.round(8 + 5 * Math.sin(h * 0.3 + dayOffset) + (h >= 12 && h <= 17 ? 4 : 0))));
+          temp = Math.round(26 + 4 * Math.sin(((h - 6) / 24) * 2 * Math.PI));
+        }
+
+        // Hitung Skor Aktivitas Ikan (0 - 100%)
+        const currentStrengthScore = Math.min(35, Math.round(Math.abs(tideSlope) * 145));
+        const goldenBonus = isGoldenHour ? 22 : 0;
+        const dawnDuskBonus = (h >= 5 && h <= 8) || (h >= 17 && h <= 21) ? 14 : 0;
+        const weatherPenalty = (rainMm >= 2.5 ? 15 : 0) + (windSpeed >= 18 ? 10 : 0);
+
+        const rawScore = 22 + moon.solunarBonus + currentStrengthScore + goldenBonus + dawnDuskBonus - weatherPenalty;
+        const activityScore = Math.max(18, Math.min(98, Math.round(rawScore)));
+
+        let activityLabel = 'Sepi';
+        let badgeClass = 'bg-gray-100 text-gray-700 border-gray-200';
+        if (activityScore >= 75) {
+          activityLabel = 'Gacor / Puncak';
+          badgeClass = 'bg-emerald-50 text-emerald-800 border-emerald-200';
+        } else if (activityScore >= 55) {
+          activityLabel = 'Lumayan';
+          badgeClass = 'bg-sky-50 text-sky-800 border-sky-200';
+        }
+
+        // Rekomendasi Berat Timah berdasarkan kecepatan angin & kekuatan arus
+        let sinkerUL = '3–5g (A-0)';
+        let sinkerHandline = '10g';
+        if (windSpeed >= 15 || Math.abs(tideSlope) >= 0.22) {
+          sinkerUL = '7–10g (A-1)';
+          sinkerHandline = '15–20g';
+        } else if (windSpeed >= 10 || Math.abs(tideSlope) >= 0.14) {
+          sinkerUL = '5–7g (A-0/A-1)';
+          sinkerHandline = '10–15g';
+        }
+
+        hours.push({
+          hour: h,
+          timeLabel: `${String(h).padStart(2, '0')}:00`,
+          tideHeight,
+          tidePhase,
+          isGoldenHour,
+          activityScore,
+          activityLabel,
+          badgeClass,
+          rainProb,
+          rainMm,
+          windSpeed,
+          temp,
+          sinkerUL,
+          sinkerHandline
+        });
+      }
+
+      // Skor Harian (rata-rata dari 6 jam terbaik hari itu)
+      const top6Scores = [...hours].sort((a, b) => b.activityScore - a.activityScore).slice(0, 6);
+      const dailyScore = Math.round(top6Scores.reduce((acc, item) => acc + item.activityScore, 0) / 6);
+
+      return {
+        dateObj,
+        moon,
+        finePoints,
+        highTides,
+        lowTides,
+        goldenRanges,
+        hours,
+        dailyScore
+      };
+    }
+
+    // ==================== 5. RENDERING UI UTAMA ====================
+    function renderDateStrip() {
+      const container = document.getElementById('date-strip-container');
+      const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+      let html = '';
+
+      for (let i = 0; i < 7; i++) {
+        const d = getDateByOffset(i);
+        const m = buildDayModel(i);
+        const isSelected = state.selectedDayIndex === i;
+        const maxRain = Math.max(...m.hours.map(h => h.rainProb));
+
+        const scorePillClass = m.dailyScore >= 75
+          ? 'bg-emerald-100 text-emerald-800'
+          : m.dailyScore >= 55
+            ? 'bg-sky-100 text-sky-800'
+            : 'bg-gray-100 text-gray-600';
+
+        html += `
+          <button onclick="selectDay(${i})" class="flex flex-col items-center justify-center py-2 px-1 rounded-xl border transition ${
+            isSelected
+              ? 'bg-sky-600 border-sky-600 text-white shadow-sm'
+              : 'bg-white border-[#E5E7EB] text-slate-700 hover:bg-gray-50'
+          }">
+            <span class="text-[10px] font-bold uppercase ${isSelected ? 'text-sky-100' : 'text-slate-500'}">${i === 0 ? 'Hari Ini' : dayNames[d.getDay()]}</span>
+            <span class="text-sm sm:text-base font-extrabold font-mono mt-0.5">${d.getDate()}</span>
+            <span class="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full mt-1 ${isSelected ? 'bg-white/20 text-white' : scorePillClass}">
+              ${m.dailyScore}%
+            </span>
+            <span class="text-[9px] mt-0.5 ${isSelected ? 'text-sky-100' : 'text-slate-400'}">${maxRain >= 60 ? '🌧️ Hujan' : '⛅ Cerah'}</span>
+          </button>
+        `;
+      }
+      container.innerHTML = html;
+
+      const selectedDate = getDateByOffset(state.selectedDayIndex);
+      document.getElementById('selected-date-label').textContent = new Intl.DateTimeFormat('id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(selectedDate);
+    }
+
+    function selectDay(dayIndex) {
+      state.selectedDayIndex = dayIndex;
+      rebuildDayDataAndRender();
+    }
+
+    function rebuildDayDataAndRender() {
+      renderDateStrip();
+      const model = buildDayModel(state.selectedDayIndex);
+      state.currentDayModel = model;
+
+      // Update Header Lokasi
+      document.getElementById('header-location-text').textContent =
+        `${state.location.name} (${state.location.lat.toFixed(4)}, ${state.location.lon.toFixed(4)})`;
+
+      const isDefault = Math.abs(state.location.lat - DEFAULT_COA.lat) < 0.0005 &&
+                        Math.abs(state.location.lon - DEFAULT_COA.lon) < 0.0005;
+      document.getElementById('btn-reset-default').classList.toggle('hidden', isDefault);
+
+      // Update 4 Kartu Ringkasan Atas
+      document.getElementById('daily-fish-score').textContent = `${model.dailyScore}%`;
+      const fishBadge = document.getElementById('daily-fish-badge');
+      if (model.dailyScore >= 75) {
+        fishBadge.textContent = 'GACOR';
+        fishBadge.className = 'text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200';
+      } else if (model.dailyScore >= 55) {
+        fishBadge.textContent = 'LUMAYAN';
+        fishBadge.className = 'text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-sky-50 text-sky-800 border border-sky-200';
+      } else {
+        fishBadge.textContent = 'SEPI';
+        fishBadge.className = 'text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-200';
+      }
+      document.getElementById('daily-moon-label').textContent = `${model.moon.name} (${model.moon.illum}%)`;
+
+      // Jendela Emas Utama
+      const primaryGolden = model.goldenRanges[model.goldenRanges.length - 1] || model.goldenRanges[0];
+      document.getElementById('daily-best-window').textContent = primaryGolden
+        ? `${String(primaryGolden.startHour).padStart(2, '0')}:00–${String(primaryGolden.endHour).padStart(2, '0')}:00`
+        : '17:00–20:00';
+
+      // Curah Hujan Harian & Banner Peringatan Hujan
+      const rainyHours = model.hours.filter(h => h.rainProb >= 60 || h.rainMm >= 1.5);
+      const maxRainProb = Math.max(...model.hours.map(h => h.rainProb));
+      const totalRainMm = model.hours.reduce((acc, h) => acc + h.rainMm, 0).toFixed(1);
+
+      document.getElementById('daily-rain-prob').textContent = `${maxRainProb}%`;
+      document.getElementById('daily-rain-mm').textContent = `(${totalRainMm} mm)`;
+      document.getElementById('daily-rain-status').textContent =
+        rainyHours.length > 0 ? `Waspada hujan (${rainyHours.length} jam)` : 'Cuaca Kondusif Dermaga';
+
+      const rainBanner = document.getElementById('rain-warning-banner');
+      if (rainyHours.length > 0) {
+        rainBanner.classList.remove('hidden');
+        const jamList = rainyHours.slice(0, 4).map(h => h.timeLabel).join(', ');
+        document.getElementById('rain-warning-text').textContent =
+          `Potensi hujan cukup tinggi (${maxRainProb}%) sekitar pukul ${jamList} WIT. Siapkan jas hujan dan lindungi gulungan senar/umpan.`;
+      } else {
+        rainBanner.classList.add('hidden');
+      }
+
+      // Angin & Saran Timah Harian
+      const avgWind = Math.round(model.hours.reduce((a, b) => a + b.windSpeed, 0) / 24);
+      document.getElementById('daily-wind-speed').textContent = avgWind;
+      const sampleSinkerHour = model.hours[18] || model.hours[0];
+      document.getElementById('daily-sinker-advice').textContent =
+        `UL: ${sampleSinkerHour.sinkerUL} | Tali: ${sampleSinkerHour.sinkerHandline}`;
+
+      // Render Grafik SVG Pasang Surut
+      renderTideChart(model);
+      updateInspectedHourUI(state.selectedHour);
+
+      // Render Daftar Pasang Tertinggi, Surut Terendah & Jendela Emas
+      document.getElementById('high-tide-list').innerHTML = model.highTides
+        .map(ht => `<div>• Pukul ${ht.timeStr} WIT <span class="text-sky-700">(${ht.height} m)</span></div>`)
+        .join('') || '<div>-</div>';
+
+      document.getElementById('low-tide-list').innerHTML = model.lowTides
+        .map(lt => `<div>• Pukul ${lt.timeStr} WIT <span class="text-slate-500">(${lt.height} m)</span></div>`)
+        .join('') || '<div>-</div>';
+
+      document.getElementById('golden-window-list').innerHTML = model.goldenRanges
+        .map(g => `<div>★ ${g.label} <span class="text-emerald-700 font-normal">(Puncak ${g.peakTime})</span></div>`)
+        .join('') || '<div>★ 17:00 – 20:00 WIT</div>';
+
+      // Render 6 Jam Pilihan di Beranda
+      const keyHours = [5, 8, 12, 16, 19, 21];
+      document.getElementById('highlight-hours-grid').innerHTML = keyHours.map(hr => {
+        const hObj = model.hours[hr];
+        return `
+          <div onclick="selectHourFromCard(${hr})" class="cursor-pointer rounded-xl border border-[#E5E7EB] p-2.5 hover:border-sky-400 transition ${hObj.isGoldenHour ? 'bg-emerald-50/40' : 'bg-white'}">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold font-mono text-slate-900">${hObj.timeLabel}</span>
+              <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ${hObj.badgeClass}">${hObj.activityScore}%</span>
+            </div>
+            <div class="mt-1.5 text-[11px] font-semibold text-slate-700">Pasang: <span class="font-mono">${hObj.tideHeight}m</span></div>
+            <div class="text-[11px] text-slate-500">Hujan: ${hObj.rainProb}% (${hObj.rainMm}mm)</div>
+            <div class="text-[10px] font-bold text-teal-800 mt-1 truncate">UL: ${hObj.sinkerUL}</div>
+          </div>
+        `;
+      }).join('');
+
+      // Ringkasan Taktik Harian
+      const bestHourObj = [...model.hours].sort((a, b) => b.activityScore - a.activityScore)[0];
+      document.getElementById('daily-tactical-summary').innerHTML =
+        `Peluang makan tertinggi hari ini ada di pukul <strong>${bestHourObj.timeLabel} WIT (Skor ${bestHourObj.activityScore}% - ${bestHourObj.activityLabel})</strong> saat <em>${bestHourObj.tidePhase}</em>. Gunakan timah <strong>${bestHourObj.sinkerUL}</strong> untuk joran UL 2–6 lbs atau <strong>${bestHourObj.sinkerHandline}</strong> untuk tali tangan.`;
+
+      // Render Tabel 24 Jam di Tab Per Jam
+      renderHourlyTable(model);
+
+      // Perbarui Konteks Gemini
+      updateGeminiContextBanner();
+    }
+
+    function renderTideChart(model) {
+      const W = 760;
+      const H = 240;
+      const padL = 42;
+      const padR = 16;
+      const padT = 24;
+      const padB = 28;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const maxM = 2.5;
+
+      const xForHour = (hrFloat) => padL + (hrFloat / 23.75) * plotW;
+      const yForM = (m) => padT + plotH - (Math.min(maxM, Math.max(0, m)) / maxM) * plotH;
+
+      // Grid Horizontal
+      let gridHtml = '';
+      [0.5, 1.0, 1.5, 2.0].forEach(m => {
+        const y = yForM(m);
+        gridHtml += `
+          <line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#E5E7EB" stroke-dasharray="4 4" stroke-width="1" />
+          <text x="${padL - 6}" y="${y + 3}" text-anchor="end" fill="#64748B" font-size="10" font-weight="600" font-family="JetBrains Mono">${m.toFixed(1)}m</text>
+        `;
+      });
+      document.getElementById('svg-grid').innerHTML = gridHtml;
+
+      // Blok Jendela Emas Arus Jalan
+      let goldenHtml = '';
+      model.goldenRanges.forEach(g => {
+        const x1 = xForHour(g.startHour);
+        const x2 = xForHour(g.endHour);
+        goldenHtml += `
+          <rect x="${x1}" y="${padT}" width="${Math.max(8, x2 - x1)}" height="${plotH}" fill="url(#cleanGoldenGrad)" rx="4" />
+          <text x="${(x1 + x2) / 2}" y="${padT + 12}" text-anchor="middle" fill="#065F46" font-size="9.5" font-weight="700">JENDELA EMAS</text>
+        `;
+      });
+      document.getElementById('svg-golden-zones').innerHTML = goldenHtml;
+
+      // Kurva Pasang Surut
+      const pts = model.finePoints.map(p => `${xForHour(p.hourFloat).toFixed(1)},${yForM(p.height).toFixed(1)}`).join(' ');
+      const areaPts = `${xForHour(0).toFixed(1)},${(padT + plotH).toFixed(1)} ${pts} ${xForHour(23.75).toFixed(1)},${(padT + plotH).toFixed(1)}`;
+      document.getElementById('svg-tide-area').innerHTML = `
+        <polygon points="${areaPts}" fill="url(#cleanTideGrad)" />
+        <polyline points="${pts}" fill="none" stroke="#0284C7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+      `;
+
+      // Titik Puncak Pasang & Surut
+      let extHtml = '';
+      model.highTides.forEach(ht => {
+        const cx = xForHour(ht.hourFloat);
+        const cy = yForM(ht.height);
+        extHtml += `
+          <circle cx="${cx}" cy="${cy}" r="4.5" fill="#0284C7" stroke="#FFFFFF" stroke-width="2" />
+          <rect x="${cx - 34}" y="${Math.max(2, cy - 24)}" width="68" height="16" rx="4" fill="#0284C7" />
+          <text x="${cx}" y="${Math.max(13, cy - 13)}" text-anchor="middle" fill="#FFFFFF" font-size="9.5" font-weight="700" font-family="JetBrains Mono">${ht.timeStr} (${ht.height}m)</text>
+        `;
+      });
+      model.lowTides.forEach(lt => {
+        const cx = xForHour(lt.hourFloat);
+        const cy = yForM(lt.height);
+        extHtml += `
+          <circle cx="${cx}" cy="${cy}" r="4" fill="#64748B" stroke="#FFFFFF" stroke-width="1.5" />
+          <text x="${cx}" y="${Math.min(padT + plotH - 6, cy + 14)}" text-anchor="middle" fill="#334155" font-size="9.5" font-weight="700" font-family="JetBrains Mono">${lt.timeStr} (${lt.height}m)</text>
+        `;
+      });
+      document.getElementById('svg-extremes').innerHTML = extHtml;
+
+      // Garis Jam Sekarang (Jika Hari Ini)
+      const nowLayer = document.getElementById('svg-now-line');
+      if (state.selectedDayIndex === 0) {
+        const now = new Date();
+        const hrNow = now.getHours() + now.getMinutes() / 60;
+        const nx = xForHour(hrNow);
+        nowLayer.innerHTML = `
+          <line x1="${nx}" y1="${padT}" x2="${nx}" y2="${padT + plotH}" stroke="#DC2626" stroke-width="1.5" stroke-dasharray="3 3" />
+        `;
+      } else {
+        nowLayer.innerHTML = '';
+      }
+    }
+
+    function updateInspectedHourUI(hourInt) {
+      const model = state.currentDayModel;
+      if (!model) return;
+      const hObj = model.hours[hourInt] || model.hours[0];
+      state.selectedHour = hObj.hour;
+
+      const slider = document.getElementById('hour-slider');
+      if (slider && parseInt(slider.value, 10) !== hObj.hour) {
+        slider.value = hObj.hour;
+      }
+
+      document.getElementById('inspect-time').textContent = `${hObj.timeLabel} WIT`;
+      document.getElementById('inspect-tide').textContent = `${hObj.tideHeight.toFixed(2)} m (${hObj.tidePhase.split(' ')[0]})`;
+      document.getElementById('inspect-activity').textContent = `${hObj.activityScore}% • ${hObj.activityLabel}`;
+      document.getElementById('inspect-sinker').textContent = `UL ${hObj.sinkerUL} | Tali ${hObj.sinkerHandline}`;
+
+      // Gambar Kursor pada SVG
+      const W = 760, H = 240, padL = 42, padR = 16, padT = 24, padB = 28;
+      const plotW = W - padL - padR;
+      const plotH = H - padT - padB;
+      const cx = padL + (hObj.hour / 23.75) * plotW;
+      const cy = padT + plotH - (Math.min(2.5, Math.max(0, hObj.tideHeight)) / 2.5) * plotH;
+
+      document.getElementById('svg-scrubber').innerHTML = `
+        <line x1="${cx}" y1="${padT}" x2="${cx}" y2="${padT + plotH}" stroke="#0284C7" stroke-width="1.5" />
+        <circle cx="${cx}" cy="${cy}" r="6.5" fill="#0284C7" stroke="#FFFFFF" stroke-width="2.5" />
+      `;
+    }
+
+    function selectHourFromCard(hr) {
+      updateInspectedHourUI(hr);
+    }
+
+    // ==================== 6. TABEL 24 JAM (FITUR 2, 3 & SARAN TIMAH) ====================
+    function setHourlyFilter(filterMode) {
+      state.hourlyFilter = filterMode;
+      const btnAll = document.getElementById('btn-filter-all');
+      const btnGacor = document.getElementById('btn-filter-gacor');
+      if (filterMode === 'all') {
+        btnAll.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white transition';
+        btnGacor.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-slate-700 hover:bg-gray-200 transition';
+      } else {
+        btnGacor.className = 'px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-700 text-white transition';
+        btnAll.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-gray-100 text-slate-700 hover:bg-gray-200 transition';
+      }
+      if (state.currentDayModel) renderHourlyTable(state.currentDayModel);
+    }
+
+    function renderHourlyTable(model) {
+      const container = document.getElementById('hourly-list-container');
+      const rows = state.hourlyFilter === 'gacor'
+        ? model.hours.filter(h => h.activityScore >= 70 || h.isGoldenHour)
+        : model.hours;
+
+      if (!rows.length) {
+        container.innerHTML = `<div class="py-6 text-center text-xs text-slate-500">Tidak ada jam dengan skor di atas 70% hari ini. Pilih "Semua (24 Jam)".</div>`;
+        return;
+      }
+
+      container.innerHTML = rows.map(h => `
+        <div class="py-3 px-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 ${h.isGoldenHour ? 'bg-emerald-50/40 rounded-xl my-0.5' : ''}">
+          <div class="flex items-center gap-3">
+            <div class="w-14 shrink-0">
+              <div class="text-sm font-extrabold font-mono text-slate-900">${h.timeLabel}</div>
+              ${h.isGoldenHour ? '<span class="text-[9px] font-extrabold text-emerald-700 uppercase">★ Emas</span>' : `<span class="text-[10px] text-slate-400">${h.temp}°C</span>`}
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-extrabold px-2 py-0.5 rounded-md border ${h.badgeClass}">
+                  Ikan ${h.activityScore}% • ${h.activityLabel}
+                </span>
+                <span class="text-xs font-mono font-bold text-slate-800">Pasang ${h.tideHeight}m</span>
+              </div>
+              <div class="text-[11px] text-slate-600 mt-0.5">${h.tidePhase}</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:flex items-center gap-3 text-xs pt-1 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+            <div class="bg-gray-50 border border-[#E5E7EB] rounded-lg px-2.5 py-1">
+              <span class="text-[10px] text-slate-500 block">Curah Hujan</span>
+              <span class="font-bold ${h.rainProb >= 60 ? 'text-amber-700' : 'text-slate-800'}">${h.rainProb}% (${h.rainMm} mm/jam)</span>
+            </div>
+            <div class="bg-gray-50 border border-[#E5E7EB] rounded-lg px-2.5 py-1">
+              <span class="text-[10px] text-slate-500 block">Angin ${h.windSpeed} km/j • Timah</span>
+              <span class="font-bold text-teal-800">UL ${h.sinkerUL} | Tali ${h.sinkerHandline}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ==================== 7. LOGBOOK TANGKAPAN, SPOT GPS & EKSPOR ====================
+    function setDefaultLogDateTime() {
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, '0');
+      const localIso = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+      const input = document.getElementById('log-datetime');
+      if (input && !input.value) input.value = localIso;
+    }
+
+    function getMostCommonItem(arr) {
+      if (!arr.length) return '-';
+      const map = {};
+      let best = arr[0], max = 0;
+      arr.forEach(x => {
+        map[x] = (map[x] || 0) + 1;
+        if (map[x] > max) { max = map[x]; best = x; }
+      });
+      return best;
+    }
+
+    function renderLogsAndSpots() {
+      setDefaultLogDateTime();
+
+      // Isi pilihan spot pada form logbook
+      const spotSelect = document.getElementById('log-spot');
+      if (spotSelect) {
+        spotSelect.innerHTML = state.spots.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+      }
+
+      // Hitung Statistik Logbook
+      document.getElementById('stat-total-fish').textContent = `${state.logs.length} Ekor`;
+      document.getElementById('stat-best-bait').textContent = getMostCommonItem(state.logs.map(l => l.bait));
+
+      const hoursCaught = state.logs.map(l => {
+        if (!l.datetime || !l.datetime.includes('T')) return '19:00';
+        return l.datetime.split('T')[1].slice(0, 2) + ':00 WIT';
+      });
+      document.getElementById('stat-best-hour').textContent = getMostCommonItem(hoursCaught);
+
+      // Render Daftar Riwayat Tangkapan
+      const listEl = document.getElementById('catch-history-list');
+      if (!state.logs.length) {
+        listEl.innerHTML = `<div class="p-6 text-center text-xs text-slate-500 bg-gray-50 rounded-xl border border-[#E5E7EB]">Belum ada catatan tangkapan. Catat hasil pancingan Anda pada formulir di atas.</div>`;
+      } else {
+        listEl.innerHTML = state.logs.map(item => `
+          <div class="p-3.5 rounded-xl border border-[#E5E7EB] bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-sm font-extrabold text-slate-900">${item.species}</span>
+                <span class="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">${item.size}</span>
+                <span class="text-[11px] font-mono text-slate-500">${item.datetime.replace('T', ' • ')}</span>
+              </div>
+              <div class="text-xs text-slate-700 font-medium">
+                Spot: <span class="font-bold text-sky-800">${item.spot}</span> • Rangkaian: ${item.rig}
+              </div>
+              <div class="text-xs text-slate-600">
+                Umpan: <strong class="text-slate-900">${item.bait}</strong> ${item.notes ? `— "${item.notes}"` : ''}
+              </div>
+            </div>
+            <button onclick="deleteCatchLog('${item.id}')" class="self-end sm:self-center px-2.5 py-1 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition">
+              Hapus
+            </button>
+          </div>
+        `).join('');
+      }
+
+      // Render Daftar Titik Spot GPS
+      const spotsEl = document.getElementById('spots-list-container');
+      spotsEl.innerHTML = state.spots.map(sp => `
+        <div class="p-3 rounded-xl border border-[#E5E7EB] bg-gray-50/70 flex flex-col justify-between gap-2">
+          <div>
+            <div class="flex items-center justify-between gap-2">
+              <h4 class="text-xs sm:text-sm font-extrabold text-slate-900">${sp.name}</h4>
+              <span class="text-[11px] font-mono text-sky-700 font-semibold">${Number(sp.lat).toFixed(4)}, ${Number(sp.lon).toFixed(4)}</span>
+            </div>
+            <p class="text-xs text-slate-600 mt-1">${sp.desc || 'Titik koordinat tersimpan'}</p>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-[#E5E7EB]">
+            <button onclick="setLocationFromSpot('${sp.id}')" class="text-xs font-bold text-sky-700 hover:underline">
+              Jadikan Lokasi Prakiraan
+            </button>
+            <button onclick="deleteSpotItem('${sp.id}')" class="text-xs font-semibold text-slate-400 hover:text-red-600">
+              Hapus
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function submitCatchLog(e) {
+      e.preventDefault();
+      const newEntry = {
+        id: 'log-' + Date.now(),
+        datetime: document.getElementById('log-datetime').value,
+        species: document.getElementById('log-species').value.trim(),
+        size: document.getElementById('log-size').value.trim(),
+        bait: document.getElementById('log-bait').value,
+        rig: document.getElementById('log-rig').value,
+        spot: document.getElementById('log-spot').value,
+        notes: document.getElementById('log-notes').value.trim()
+      };
+      state.logs.unshift(newEntry);
+      saveLogsStorage();
+      document.getElementById('log-species').value = '';
+      document.getElementById('log-size').value = '';
+      document.getElementById('log-notes').value = '';
+      setDefaultLogDateTime();
+      renderLogsAndSpots();
+      updateGeminiContextBanner();
+      showToast(`Tangkapan ${newEntry.species} berhasil disimpan!`, 'success');
+    }
+
+    function deleteCatchLog(id) {
+      state.logs = state.logs.filter(l => l.id !== id);
+      saveLogsStorage();
+      renderLogsAndSpots();
+      updateGeminiContextBanner();
+      showToast('Catatan tangkapan dihapus.', 'info');
+    }
+
+    function handleAddSpotForm(e) {
+      e.preventDefault();
+      const name = document.getElementById('spot-name-input').value.trim();
+      const lat = parseFloat(document.getElementById('spot-lat-input').value);
+      const lon = parseFloat(document.getElementById('spot-lon-input').value);
+      state.spots.unshift({
+        id: 'spot-' + Date.now(),
+        name,
+        lat,
+        lon,
+        desc: 'Titik koordinat manual'
+      });
+      saveSpotsStorage();
+      document.getElementById('spot-name-input').value = '';
+      document.getElementById('spot-lat-input').value = '';
+      document.getElementById('spot-lon-input').value = '';
+      renderLogsAndSpots();
+      showToast(`Spot "${name}" disimpan!`, 'success');
+    }
+
+    function addSpotWithOneClickGPS() {
+      if (!navigator.geolocation) {
+        showToast('Browser tidak mendukung GPS.', 'warning');
+        return;
+      }
+      showToast('Mengambil titik GPS Anda...', 'info');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = Number(pos.coords.latitude.toFixed(5));
+          const lon = Number(pos.coords.longitude.toFixed(5));
+          const spotName = `Spot GPS Dermaga (${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })})`;
+          state.spots.unshift({
+            id: 'spot-' + Date.now(),
+            name: spotName,
+            lat,
+            lon,
+            desc: 'Ditandai langsung dengan 1-klik GPS perangkat.'
+          });
+          saveSpotsStorage();
+          renderLogsAndSpots();
+          showToast(`Titik GPS (${lat}, ${lon}) disimpan!`, 'success');
+        },
+        () => {
+          showToast('Gagal mengakses GPS. Pastikan izin lokasi aktif.', 'warning');
+        },
+        { enableHighAccuracy: true, timeout: 7000 }
+      );
+    }
+
+    function setLocationFromSpot(spotId) {
+      const sp = state.spots.find(s => s.id === spotId);
+      if (!sp) return;
+      state.location = { name: sp.name, lat: sp.lat, lon: sp.lon };
+      fetch7DayWeather(sp.lat, sp.lon);
+      switchTab('prakiraan');
+      showToast(`Lokasi prakiraan diubah ke ${sp.name}`, 'success');
+    }
+
+    function deleteSpotItem(spotId) {
+      state.spots = state.spots.filter(s => s.id !== spotId);
+      saveSpotsStorage();
+      renderLogsAndSpots();
+      showToast('Titik spot dihapus.', 'info');
+    }
+
+    // Ekspor & Salin Catatan
+    function copyLogsToClipboard() {
+      const text = state.logs.map((l, i) =>
+        `${i + 1}. [${l.datetime.replace('T', ' ')}] ${l.species} (${l.size}) | Umpan: ${l.bait} | Rig: ${l.rig} | Spot: ${l.spot} | Catatan: ${l.notes || '-'}`
+      ).join('\n');
+      const area = document.createElement('textarea');
+      area.value = text || 'Belum ada catatan tangkapan.';
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand('copy');
+      area.remove();
+      showToast('Catatan tangkapan disalin ke clipboard!', 'success');
+    }
+
+    function exportLogsJSON() {
+      const blob = new Blob([JSON.stringify(state.logs, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `catatan_mancing_kaimana_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('File JSON berhasil diunduh.', 'success');
+    }
+
+    function exportLogsCSV() {
+      const headers = ['Tanggal_Jam', 'Nama_Ikan', 'Ukuran', 'Umpan', 'Rangkaian', 'Spot', 'Catatan'];
+      const rows = state.logs.map(l => [
+        `"${l.datetime}"`, `"${l.species}"`, `"${l.size}"`, `"${l.bait}"`, `"${l.rig}"`, `"${l.spot}"`, `"${(l.notes || '').replace(/"/g, '""')}"`
+      ].join(','));
+      const csv = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `catatan_mancing_kaimana_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('File CSV berhasil diunduh.', 'success');
+    }
+
+    // ==================== 8. LOKASI GPS PENGGUNA ====================
+    function useMyGPS() {
+      if (!navigator.geolocation) {
+        showToast('Perangkat tidak mendukung fitur GPS.', 'warning');
+        return;
+      }
+      showToast('Mendeteksi koordinat GPS Anda...', 'info');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = Number(pos.coords.latitude.toFixed(4));
+          const lon = Number(pos.coords.longitude.toFixed(4));
+          state.location = {
+            name: 'Lokasi GPS Saya Saat Ini',
+            lat,
+            lon
+          };
+          fetch7DayWeather(lat, lon);
+          showToast(`GPS Aktif (${lat}, ${lon})`, 'success');
+        },
+        () => {
+          showToast('Izin GPS tidak diberikan. Tetap menggunakan Pelabuhan Kampung Coa.', 'warning');
+        },
+        { enableHighAccuracy: true, timeout: 7000 }
+      );
+    }
+
+    function resetToDefaultCoa() {
+      state.location = { ...DEFAULT_COA };
+      fetch7DayWeather(DEFAULT_COA.lat, DEFAULT_COA.lon);
+      showToast('Kembali ke Pelabuhan Kampung Coa, Kaimana.', 'info');
+    }
+
+    // ==================== 9. FITUR 5: TANYA GEMINI LANGSUNG (TERINTEGRASI CATATAN) ====================
+    function toggleApiKeyPanel() {
+      document.getElementById('apikey-panel').classList.toggle('hidden');
+    }
+
+    function saveCustomApiKey() {
+      const val = document.getElementById('custom-apikey-input').value.trim();
+      state.customApiKey = val;
+      try { localStorage.setItem('coa_gemini_apikey_v2', val); } catch (e) {}
+      document.getElementById('apikey-panel').classList.add('hidden');
+      showToast('Pengaturan API Key disimpan.', 'success');
+    }
+
+    function buildIntegratedContextText() {
+      const m = state.currentDayModel || buildDayModel(0);
+      const highStr = m.highTides.map(h => `${h.timeStr} (${h.height}m)`).join(', ');
+      const lowStr = m.lowTides.map(l => `${l.timeStr} (${l.height}m)`).join(', ');
+      const goldenStr = m.goldenRanges.map(g => g.label).join(', ');
+      const topHours = [...m.hours].sort((a, b) => b.activityScore - a.activityScore).slice(0, 3)
+        .map(h => `${h.timeLabel} (${h.activityScore}%)`).join(', ');
+      const maxRain = Math.max(...m.hours.map(h => h.rainProb));
+      const avgWind = Math.round(m.hours.reduce((a, b) => a + b.windSpeed, 0) / 24);
+
+      const bestBait = getMostCommonItem(state.logs.map(l => l.bait));
+      const recentLogsText = state.logs.slice(0, 8).map((l, idx) =>
+        `${idx + 1}. ${l.species} (${l.size}) pakai umpan ${l.bait} & rangkaian ${l.rig} di ${l.spot} pada ${l.datetime.replace('T', ' ')} (${l.notes || 'tanpa catatan'})`
+      ).join('; ');
+
+      return {
+        shortPreview: `Lokasi: ${state.location.name} • Skor Hari Ini: ${m.dailyScore}% (${m.moon.name}) • Jendela Emas: ${goldenStr || '-'} • Hujan Maks: ${maxRain}% • Catatan Tangkapan: ${state.logs.length} ekor (Umpan terampuh: ${bestBait}).`,
+        fullSystemPrompt: `Anda adalah asisten ahli memancing laut dan dermaga khusus untuk perairan Pelabuhan Kampung Coa, Kaimana, Papua Barat. Jawablah dengan bahasa Indonesia yang ramah, ringkas, praktis, dan terstruktur (gunakan poin-poin).
+
+KONTEKS LOKASI & CUACA HARI INI:
+- Lokasi: ${state.location.name} (${state.location.lat}, ${state.location.lon})
+- Fase Bulan: ${m.moon.name} (Iluminasi ${m.moon.illum}%)
+- Skor Aktivitas Ikan Harian: ${m.dailyScore}%
+- Jam Pasang Tertinggi: ${highStr || '-'}
+- Jam Surut Terendah: ${lowStr || '-'}
+- Jendela Emas Arus Jalan: ${goldenStr || '-'}
+- 3 Jam Paling Gacor Hari Ini: ${topHours}
+- Peluang Hujan Maksimal: ${maxRain}% | Rata-rata Angin: ${avgWind} km/jam
+
+RIWAYAT BUKU CATATAN TANGKAPAN PENGGUNA (${state.logs.length} tangkapan, umpan terampuh: ${bestBait}):
+${recentLogsText || 'Belum ada riwayat tangkapan.'}
+
+SPESIFIKASI ALAT PENGGUNA:
+- Joran Ultralight (UL) 150 cm (2-6 lbs) dengan senar PE 0.4-0.6, leader Fluorocarbon 5-6 lbs, kail Chinu No. 1-3, timah anting 5-10 gram (A-0/A-1), serta opsi Tali Tangan (Handline nilon 0.30-0.40 mm).`
+      };
+    }
+
+    function updateGeminiContextBanner() {
+      const ctx = buildIntegratedContextText();
+      const el = document.getElementById('gemini-context-preview');
+      if (el) el.textContent = ctx.shortPreview;
+    }
+
+    function appendChatMessage(role, htmlContent) {
+      const box = document.getElementById('gemini-chat-messages');
+      const wrapper = document.createElement('div');
+      if (role === 'user') {
+        wrapper.className = 'flex justify-end';
+        wrapper.innerHTML = `
+          <div class="max-w-[85%] rounded-2xl bg-sky-600 text-white px-3.5 py-2.5 text-xs sm:text-sm leading-relaxed shadow-sm">
+            ${htmlContent}
+          </div>
+        `;
+      } else {
+        wrapper.className = 'flex justify-start';
+        wrapper.innerHTML = `
+          <div class="max-w-[92%] rounded-2xl bg-gray-50 border border-[#E5E7EB] text-slate-800 px-3.5 py-3 text-xs sm:text-sm leading-relaxed space-y-1.5">
+            ${htmlContent}
+          </div>
+        `;
+      }
+      box.appendChild(wrapper);
+      box.scrollTop = box.scrollHeight;
+      return wrapper;
+    }
+
+    function formatSimpleMarkdown(text) {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/\n/g, '<br/>');
+    }
+
+    function generateLocalSmartFallback(query) {
+      const m = state.currentDayModel || buildDayModel(0);
+      const goldenStr = m.goldenRanges.map(g => g.label).join(' dan ');
+      const bestHours = [...m.hours].sort((a, b) => b.activityScore - a.activityScore).slice(0, 3);
+      const bestBait = getMostCommonItem(state.logs.map(l => l.bait));
+
+      return `<strong>Analisis Strategi Berdasarkan Catatan &amp; Pasang Surut Hari Ini:</strong><br/>
+• <strong>Waktu Turun Terbaik:</strong> Manfaatkan <em>Jendela Emas Arus Jalan</em> pada pukul <strong>${goldenStr || '16:00–20:00 WIT'}</strong>. Jam dengan skor aktivitas tertinggi adalah pukul <strong>${bestHours.map(h => `${h.timeLabel} (${h.activityScore}%)`).join(', ')}</strong>.<br/>
+• <strong>Evaluasi Catatan Tangkapan Anda:</strong> Dari <strong>${state.logs.length} catatan tangkapan</strong>, umpan yang paling sering berhasil adalah <strong>${bestBait}</strong>. Pertahankan umpan ini pada kail bawah (Chinu No. 2–3).<br/>
+• <strong>Taktik Anti-Mocel &amp; Hindari Buntal:</strong> Kupas bersih kulit ari cumi lalu iris tipis memanjang (0,5 × 2,5 cm) atau gunakan potongan udang kupas 1,5 cm dengan teknik <em>jahit 2 kali</em> (ujung kail wajib menonjol keluar). Angkat timah 20–30 cm dari dasar karang dekat tiang pancang agar terhindar dari ikan buntal.<br/>
+• <strong>Saran Timah Hari Ini:</strong> Gunakan timah anting <strong>${bestHours[0].sinkerUL}</strong> untuk joran UL 2–6 lbs atau <strong>${bestHours[0].sinkerHandline}</strong> jika memakai tali tangan.`;
+    }
+
+    async function callGeminiWithBackoff(userPrompt) {
+      const ctx = buildIntegratedContextText();
+      const apiKey = state.customApiKey || "";
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: [{ parts: [{ text: userPrompt }] }],
+        systemInstruction: {
+          parts: [{ text: ctx.fullSystemPrompt }]
+        }
+      };
+
+      const delays = [1000, 2000, 4000];
+      for (let attempt = 0; attempt <= delays.length; attempt++) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const result = await response.json();
+          const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (text) return formatSimpleMarkdown(text);
+          throw new Error('Empty response');
+        } catch (err) {
+          if (attempt < delays.length) {
+            await new Promise(r => setTimeout(r, delays[attempt]));
+          } else {
+            return generateLocalSmartFallback(userPrompt);
+          }
+        }
+      }
+    }
+
+    async function askQuickPrompt(promptText) {
+      const input = document.getElementById('gemini-user-input');
+      input.value = promptText;
+      await triggerGeminiQuery(promptText);
+    }
+
+    async function handleSendGeminiForm(e) {
+      e.preventDefault();
+      const input = document.getElementById('gemini-user-input');
+      const query = input.value.trim();
+      if (!query) return;
+      await triggerGeminiQuery(query);
+    }
+
+    async function triggerGeminiQuery(queryText) {
+      const input = document.getElementById('gemini-user-input');
+      const btn = document.getElementById('gemini-send-btn');
+      input.value = '';
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      appendChatMessage('user', formatSimpleMarkdown(queryText));
+      const loadingBubble = appendChatMessage('assistant', '<span class="text-slate-500 font-semibold">Gemini sedang menganalisis jadwal pasang surut &amp; catatan tangkapan Anda...</span>');
+
+      const answerHtml = await callGeminiWithBackoff(queryText);
+      loadingBubble.remove();
+      appendChatMessage('assistant', answerHtml);
+
+      btn.disabled = false;
+      btn.textContent = 'Kirim';
+    }
+
+    // ==================== 10. INTERAKSI GRAFIK & BOOTSTRAP APLIKASI ====================
+    function initChartEvents() {
+      const slider = document.getElementById('hour-slider');
+      const svg = document.getElementById('tide-svg');
+
+      slider.addEventListener('input', (e) => {
+        updateInspectedHourUI(parseInt(e.target.value, 10));
+      });
+
+      const handlePointSelect = (clientX) => {
+        const rect = svg.getBoundingClientRect();
+        const relX = clientX - rect.left;
+        const svgX = (relX / rect.width) * 760;
+        const ratio = Math.min(1, Math.max(0, (svgX - 42) / (760 - 42 - 16)));
+        const hr = Math.round(ratio * 23);
+        updateInspectedHourUI(hr);
+      };
+
+      svg.addEventListener('click', (e) => handlePointSelect(e.clientX));
+      svg.addEventListener('touchmove', (e) => {
+        if (e.touches && e.touches.length > 0) {
+          handlePointSelect(e.touches[0].clientX);
+        }
+      }, { passive: true });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadStorage();
+      initChartEvents();
+      switchTab('prakiraan');
+      rebuildDayDataAndRender();
+      fetch7DayWeather(state.location.lat, state.location.lon);
+    });
+  </script>
+</body>
+</html>
